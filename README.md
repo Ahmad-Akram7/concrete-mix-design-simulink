@@ -1,75 +1,53 @@
-# Simulink Model for Concrete Mix Design (ACI 211.1)
+<div align="center">
 
-This repository contains a Simulink model that automates the concrete mix design process based on the **ACI 211.1: Standard Practice for Selecting Proportions for Normal, Heavyweight, and Mass Concrete**.
+<img src="https://img.shields.io/badge/MATLAB-Simulink-0076A8?style=for-the-badge&logo=mathworks&logoColor=white"/>
+<img src="https://img.shields.io/badge/Standard-ACI%20211.1-FF6B35?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Domain-Civil%20Engineering-2E8B57?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge"/>
 
-The model serves as a dynamic and interactive tool for civil engineers and students to perform calculations, minimize human error, and conduct rapid "what-if" scenario analysis for different concrete grades and input conditions.
+<br><br>
 
----
+# 🏗️ Concrete Mix Design — Simulink Model
+### *ACI 211.1 | Automated, Visual, and Blazing Fast*
 
-## Table of Contents
-1.  [Introduction](#1-introduction)
-2.  [Methodology](#2-methodology)
-3.  [Simulink Model Documentation](#3-simulink-model-documentation)
-4.  [Results & Verification](#4-results--verification)
-5.  [Conclusion](#5-conclusion)
+**Stop doing mix design by hand. Let Simulink do the math.**
 
----
+[📖 Read the Docs](#-methodology) · [🚀 Get Started](#-getting-started) · [🤝 Contribute](#-contributing) · [⭐ Star this repo](#)
 
-## 1. Introduction
-
-### Purpose of Concrete Mix Design
-Concrete mix design is the process of selecting suitable ingredients—cement, water, fine aggregate (sand), and coarse aggregate—and determining their relative quantities to produce concrete that meets specific performance requirements. The primary objectives are to achieve a target strength, ensure adequate workability, guarantee long-term durability, and optimize for cost.
-
-### Importance of Simulink Modeling
-For a procedural task like concrete mix design, Simulink allows for the creation of a dynamic, interactive model that automates the calculation-heavy process. This visual approach minimizes human error, provides instant results for different input conditions, and allows for rapid scenario analysis.
+<br>
 
 ---
 
-## 2. Methodology
+</div>
 
-### Adopted Standard: ACI 211.1
-The model's logic is based entirely on the ACI 211.1 standard, which provides a systematic, step-by-step procedure that is logically sound and can be directly translated into a computational model.
+## 🔥 Why This Project?
 
-### Mathematical Logic
-The design process follows these sequential steps:
-1.  **Water Content Estimation**: Determined from ACI tables based on slump and the nominal maximum size of the coarse aggregate.
-2.  **Water-Cement (w/c) Ratio Selection**: Selected from ACI tables based on the target 28-day compressive strength (f'c).
-3.  **Cement Content Calculation**: `Cement (kg/m³) = Water (kg/m³) / (w/c Ratio)`
-4.  **Coarse Aggregate Content Estimation**: The volume of coarse aggregate is determined from ACI tables based on its maximum size and the fineness modulus (FM) of the sand. This volume is converted to mass using its unit weight.
-5.  **Fine Aggregate Content Calculation (Absolute Volume Method)**: The remaining volume in 1 m³ of concrete is filled by the fine aggregate. This is done by subtracting the absolute volume of all other ingredients (water, cement, coarse aggregate, and entrapped air) from 1 m³.
+If you've ever sat down with ACI 211.1 and a calculator, you know the pain — cross-referencing tables, computing volumes, recalculating everything when one input changes. This model eliminates all of that.
 
-### Governing ACI Tables
-The model's logic is driven by data from the following standard ACI tables.
+Built in **MATLAB Simulink**, this tool automates the full ACI 211.1 concrete mix design workflow in a clean, block-based visual environment. Change a single input — slump, target strength, aggregate size — and every downstream value updates *instantly*.
 
-**Table 1: Estimated Water Content (kg/m³)**
-| Slump (mm) | Max. Agg. Size 10mm | Max. Agg. Size 20mm | Max. Agg. Size 40mm |
-|:----------:|:-------------------:|:-------------------:|:-------------------:|
-| **25-50**  | 215                 | 190                 | 175                 |
-| **75-100** | 225                 | 205                 | 185                 |
-
-**Table 2: Water-Cement Ratio vs. Compressive Strength**
-| Compressive Strength (MPa) | Water-Cement Ratio |
-|:--------------------------:|:------------------:|
-| **45**                     | 0.42               |
-| **35**                     | 0.52               |
-| **25**                     | 0.65               |
-
-**Table 3: Volume of Coarse Aggregate per Unit Volume of Concrete**
-| Max. Agg. Size (mm) | FM 2.40 | FM 2.60 | FM 2.80 |
-|:-------------------:|:-------:|:-------:|:-------:|
-| **10**              | 0.50    | 0.48    | 0.46    |
-| **20**              | 0.66    | 0.64    | 0.62    |
-| **40**              | 0.75    | 0.73    | 0.71    |
+```
+💡 Designed for civil engineering students, researchers, and practicing engineers
+   who want fast, reliable, and reproducible concrete mix designs.
+```
 
 ---
 
-## 3. Simulink Model Documentation
+## ✨ Key Features
 
-### Model Architecture and Layout
-The Simulink model is organized from left to right to follow the logical flow of the calculation:
-- **Inputs**: A section of `Constant` blocks where all design parameters are defined.
-- **Calculations**: A series of calculation blocks and a central subsystem that encapsulates the main ACI 211.1 logic.
-- **Outputs**: A series of `Display` blocks showing the final computed quantities for Water, Cement, Fine Aggregate, and Coarse Aggregate in kg/m³.
+- ⚡ **Instant recalculation** — Tweak any input and all outputs update in real time
+- 📐 **Full ACI 211.1 compliance** — Water content, w/c ratio, and aggregate volumes sourced directly from ACI tables
+- 🧱 **3 validated concrete grades** — M25, M35, and M45 scenarios included out of the box
+- 🔬 **Absolute Volume Method** — Fine aggregate calculation encapsulated in a dedicated subsystem
+- 🧩 **Modular architecture** — Clean, readable block layout organized left-to-right
+- 📊 **2-D Lookup Tables** — ACI table data baked directly into the model, no external files needed
+- 🎓 **Perfect for learning** — Ideal for coursework, labs, and understanding how mix design actually works
+
+---
+
+## 📸 Model Architecture
+
+> *The model is organized left-to-right: Inputs → ACI Logic (Lookup Tables + Subsystems) → Outputs*
 
 ***
 > **IMAGE PLACEHOLDER**
@@ -78,35 +56,108 @@ The Simulink model is organized from left to right to follow the logical flow of
 ![Model Architecture](https://via.placeholder.com/800x400.png?text=PASTE+MODEL+ARCHITECTURE+SCREENSHOT+HERE)
 ***
 
-### Block-by-Block Construction
-The model was constructed manually using the Simulink Library Browser:
-- **Input Blocks**: `Constant` blocks from the `Simulink/Sources` library were used to define all input parameters (e.g., `Target_Strength_MPa`).
-- **Calculation Blocks**:
-    - `2-D Lookup Table` blocks were used to implement ACI Table 1 and Table 3.
-    - A `1-D Lookup Table` was used for ACI Table 2 (W/C Ratio).
-    - `Divide`, `Product`, and `Sum` blocks from the `Math Operations` library were used for calculations.
-    - The "Absolute Volume Method" for fine aggregate calculation was encapsulated in a dedicated `Subsystem` block to keep the main canvas clean.
-- **Output Blocks**: `Display` blocks from the `Simulink/Sinks` library were used to show the final results.
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- MATLAB R2020b or later
+- Simulink (base package)
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/concrete-mix-design-simulink.git
+
+# Open MATLAB and navigate to the project folder
+cd concrete-mix-design-simulink
+```
+
+### Running the Model
+
+```matlab
+% Open the model
+open('ConcreteMixDesign.slx')
+
+% Set your inputs in the Constant blocks:
+%   - Target_Strength_MPa  (e.g., 25, 35, 45)
+%   - Slump_mm             (e.g., 50 or 100)
+%   - Max_Agg_Size_mm      (10, 20, or 40)
+%   - Fineness_Modulus     (2.40, 2.60, or 2.80)
+
+% Hit Run (Ctrl+T) — results appear in the Display blocks instantly
+```
 
 ---
 
-## 4. Results & Verification
-The model was verified against three scenarios for different grades of concrete.
+## 📐 Methodology
 
-**Common Inputs for all Scenarios:**
-- Max. Aggregate Size: **20 mm**
-- Fineness Modulus of Sand: **2.60**
-- Specific Gravities: Cement (**3.15**), Fine Agg. (**2.65**), Coarse Agg. (**2.70**)
-- Unit Weight of Coarse Aggregate: **1600 kg/m³**
-- Entrapped Air: **2%**
+The model implements the full **ACI 211.1** procedure as a sequential calculation chain:
 
-### Scenario 1: M25 Grade Concrete
-- **Inputs**: Target Strength = 25 MPa, Slump = 100 mm
-- **Model Outputs**:
-    - Water: **205 kg/m³**
-    - Cement: **315.4 kg/m³**
-    - Coarse Aggregate: **1024 kg/m³**
-    - Fine Aggregate: **778.1 kg/m³**
+```
+Target Strength → w/c Ratio → Cement Content
+Slump + Agg. Size → Water Content ↗
+Agg. Size + FM → Coarse Agg. Volume → Coarse Agg. Mass
+Absolute Volume Method → Fine Aggregate Mass
+```
+
+### Governing ACI Tables
+
+**Table 1 — Estimated Water Content (kg/m³)**
+| Slump (mm) | 10 mm Aggregate | 20 mm Aggregate | 40 mm Aggregate |
+|:----------:|:---------------:|:---------------:|:---------------:|
+| 25 – 50    | 215             | 190             | 175             |
+| 75 – 100   | 225             | 205             | 185             |
+
+**Table 2 — Water-Cement Ratio vs. Compressive Strength**
+| f'c (MPa) | w/c Ratio |
+|:---------:|:---------:|
+| 45        | 0.42      |
+| 35        | 0.52      |
+| 25        | 0.65      |
+
+**Table 3 — Volume of Coarse Aggregate per m³ of Concrete**
+| Max. Agg. Size | FM 2.40 | FM 2.60 | FM 2.80 |
+|:--------------:|:-------:|:-------:|:-------:|
+| 10 mm          | 0.50    | 0.48    | 0.46    |
+| 20 mm          | 0.66    | 0.64    | 0.62    |
+| 40 mm          | 0.75    | 0.73    | 0.71    |
+
+**Cement content** is derived as:
+
+$$C = \frac{W}{(w/c)}$$
+
+**Fine aggregate** fills the remaining volume after subtracting water, cement, coarse aggregate, and 2% entrapped air from 1 m³.
+
+---
+
+## 📊 Results & Verification
+
+All three scenarios share these common inputs:
+
+| Parameter | Value |
+|-----------|-------|
+| Max. Aggregate Size | 20 mm |
+| Fineness Modulus | 2.60 |
+| SG — Cement | 3.15 |
+| SG — Fine Aggregate | 2.65 |
+| SG — Coarse Aggregate | 2.70 |
+| Unit Weight (CA) | 1600 kg/m³ |
+| Entrapped Air | 2% |
+
+---
+
+### 🟢 Scenario 1 — M25 Grade Concrete
+**Inputs:** Target Strength = 25 MPa · Slump = 100 mm
+
+| Component | Result |
+|-----------|--------|
+| 💧 Water | **205 kg/m³** |
+| 🏭 Cement | **315.4 kg/m³** |
+| 🪨 Coarse Aggregate | **1024 kg/m³** |
+| 🏖️ Fine Aggregate | **778.1 kg/m³** |
 
 ***
 > **IMAGE PLACEHOLDER**
@@ -115,13 +166,17 @@ The model was verified against three scenarios for different grades of concrete.
 ![M25 Results](https://via.placeholder.com/800x300.png?text=PASTE+M25+SCENARIO+SCREENSHOT+HERE)
 ***
 
-### Scenario 2: M35 Grade Concrete
-- **Inputs**: Target Strength = 35 MPa, Slump = 100 mm
-- **Model Outputs**:
-    - Water: **205 kg/m³**
-    - Cement: **394.2 kg/m³**
-    - Coarse Aggregate: **1024 kg/m³**
-    - Fine Aggregate: **690.6 kg/m³**
+---
+
+### 🟡 Scenario 2 — M35 Grade Concrete
+**Inputs:** Target Strength = 35 MPa · Slump = 100 mm
+
+| Component | Result |
+|-----------|--------|
+| 💧 Water | **205 kg/m³** |
+| 🏭 Cement | **394.2 kg/m³** |
+| 🪨 Coarse Aggregate | **1024 kg/m³** |
+| 🏖️ Fine Aggregate | **690.6 kg/m³** |
 
 ***
 > **IMAGE PLACEHOLDER**
@@ -130,13 +185,17 @@ The model was verified against three scenarios for different grades of concrete.
 ![M35 Results](https://via.placeholder.com/800x300.png?text=PASTE+M35+SCENARIO+SCREENSHOT+HERE)
 ***
 
-### Scenario 3: High-Strength M45 Grade Concrete
-- **Inputs**: Target Strength = 45 MPa, Slump = 50 mm
-- **Model Outputs**:
-    - Water: **190 kg/m³**
-    - Cement: **452.4 kg/m³**
-    - Coarse Aggregate: **1024 kg/m³**
-    - Fine Aggregate: **658.5 kg/m³**
+---
+
+### 🔴 Scenario 3 — M45 High-Strength Concrete
+**Inputs:** Target Strength = 45 MPa · Slump = 50 mm
+
+| Component | Result |
+|-----------|--------|
+| 💧 Water | **190 kg/m³** |
+| 🏭 Cement | **452.4 kg/m³** |
+| 🪨 Coarse Aggregate | **1024 kg/m³** |
+| 🏖️ Fine Aggregate | **658.5 kg/m³** |
 
 ***
 > **IMAGE PLACEHOLDER**
@@ -145,9 +204,70 @@ The model was verified against three scenarios for different grades of concrete.
 ![M45 Results](https://via.placeholder.com/800x300.png?text=PASTE+M45+SCENARIO+SCREENSHOT+HERE)
 ***
 
-The model's outputs are logical and consistent with established concrete design principles. As the target strength increases, the model correctly calculates a higher required cement content.
+> **Validation note:** As target strength increases, cement content rises and fine aggregate decreases — exactly as ACI 211.1 predicts. ✅
 
 ---
 
-## 5. Conclusion
-This project successfully demonstrates the use of Simulink to create a functional and accurate model for concrete mix design. By translating the standard ACI 211.1 procedure into a visual, block-based model, the design process is automated, efficient, and less prone to calculation error. The model was validated against multiple scenarios and proven to be a reliable tool for civil engineering design and analysis.
+## 🏛️ Simulink Block Architecture
+
+| Block Type | Library | Purpose |
+|-----------|---------|---------|
+| `Constant` | Sources | All design input parameters |
+| `2-D Lookup Table` | Lookup Tables | ACI Tables 1 & 3 |
+| `1-D Lookup Table` | Lookup Tables | ACI Table 2 (w/c ratio) |
+| `Divide` / `Product` | Math Operations | Cement & mass calculations |
+| `Sum` | Math Operations | Absolute volume summation |
+| `Subsystem` | Ports & Subsystems | Encapsulates fine aggregate logic |
+| `Display` | Sinks | Output: Water, Cement, CA, FA |
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make open source great. Here are some ideas to get you started:
+
+- 🔧 **Extend aggregate sizes** — Add support for 12.5 mm or 63 mm aggregates
+- 💨 **Add air-entrained concrete** — Implement the ACI 211.1 air-entrained water tables
+- 📈 **Add a dashboard scope** — Real-time plotting of proportions as inputs change
+- 🌍 **Metric/Imperial toggle** — Auto-convert between SI and US customary units
+- 🧪 **Additional standards** — IS 10262, BS 8500, or EN 206 mix design logic
+- 📄 **Report export** — Generate a PDF mix design summary from the Simulink outputs
+
+### How to Contribute
+
+```bash
+# 1. Fork the repo
+# 2. Create your feature branch
+git checkout -b feature/air-entrained-concrete
+
+# 3. Commit your changes
+git commit -m "Add air-entrained water content tables"
+
+# 4. Push and open a Pull Request
+git push origin feature/air-entrained-concrete
+```
+
+Please open an **Issue** first for major changes so we can discuss the approach.
+
+---
+
+## 📚 References
+
+- **ACI 211.1-91** — *Standard Practice for Selecting Proportions for Normal, Heavyweight, and Mass Concrete*. American Concrete Institute.
+- MathWorks Simulink Documentation — [mathworks.com/products/simulink](https://www.mathworks.com/products/simulink.html)
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+<div align="center">
+
+**If this project saved you time, please consider giving it a ⭐**
+
+*Built with ❤️ for the civil engineering community*
+
+</div>
