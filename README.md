@@ -50,10 +50,8 @@ Built in **MATLAB Simulink**, this tool automates the full ACI 211.1 concrete mi
 > *The model is organized left-to-right: Inputs → ACI Logic (Lookup Tables + Subsystems) → Outputs*
 
 ***
-> **IMAGE PLACEHOLDER**
-> *Replace the placeholder below with a screenshot of your overall Simulink model architecture.*
+<img width="916" height="493" alt="image" src="https://github.com/user-attachments/assets/e6281e29-0630-4295-98f7-e7adf1398e6d" />
 
-![Model Architecture](https://via.placeholder.com/800x400.png?text=PASTE+MODEL+ARCHITECTURE+SCREENSHOT+HERE)
 ***
 
 ---
@@ -160,12 +158,8 @@ All three scenarios share these common inputs:
 | 🏖️ Fine Aggregate | **778.1 kg/m³** |
 
 ***
-> **IMAGE PLACEHOLDER**
-> *Replace the placeholder below with a screenshot of your Simulink model running the M25 scenario.*
-
-![M25 Results](https://via.placeholder.com/800x300.png?text=PASTE+M25+SCENARIO+SCREENSHOT+HERE)
+<img width="1000" height="666" alt="image" src="https://github.com/user-attachments/assets/97276999-6485-434c-910f-ebf324e17f58" />
 ***
-
 ---
 
 ### 🟡 Scenario 2 — M35 Grade Concrete
@@ -179,10 +173,7 @@ All three scenarios share these common inputs:
 | 🏖️ Fine Aggregate | **690.6 kg/m³** |
 
 ***
-> **IMAGE PLACEHOLDER**
-> *Replace the placeholder below with a screenshot of your Simulink model running the M35 scenario.*
-
-![M35 Results](https://via.placeholder.com/800x300.png?text=PASTE+M35+SCENARIO+SCREENSHOT+HERE)
+<img width="975" height="453" alt="image" src="https://github.com/user-attachments/assets/c6598107-9d36-463c-9083-88cfaf0b3c31" />
 ***
 
 ---
@@ -198,10 +189,7 @@ All three scenarios share these common inputs:
 | 🏖️ Fine Aggregate | **658.5 kg/m³** |
 
 ***
-> **IMAGE PLACEHOLDER**
-> *Replace the placeholder below with a screenshot of your Simulink model running the M45 scenario.*
-
-![M45 Results](https://via.placeholder.com/800x300.png?text=PASTE+M45+SCENARIO+SCREENSHOT+HERE)
+<img width="975" height="431" alt="image" src="https://github.com/user-attachments/assets/c04e1620-a441-40d1-8d7b-c8f96bb7df59" />
 ***
 
 > **Validation note:** As target strength increases, cement content rises and fine aggregate decreases — exactly as ACI 211.1 predicts. ✅
