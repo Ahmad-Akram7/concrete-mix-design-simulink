@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concrete Mix Design — Simulink Model</title>
+    <meta name="description" content="Automated Concrete Mix Design tool built in Simulink. Implements ACI 211.1 standard logic for M25-M45 grade concrete.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ===== CSS RESET & VARIABLES ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a2e;
+            --bg-card-hover: #1f1f35;
+            --accent-blue: #4f8cff;
+            --accent-cyan: #00d4ff;
+            --accent-green: #00e676;
+            --accent-orange: #ff9100;
+            --accent-red: #ff5252;
+            --accent-yellow: #ffd600;
+            --accent-purple: #b388ff;
+            --text-primary: #e8e8f0;
+            --text-secondary: #9999b3;
+            --text-muted: #666680;
+            --border-color: #2a2a40;
+            --border-glow: rgba(79, 140, 255, 0.3);
+            --gradient-hero: linear-gradient(135deg, #4f8cff 0%, #00d4ff 50%, #00e676 100%);
+            --gradient-card: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-glow: 0 0 40px rgba(79, 140, 255, 0.15);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-xs: 6px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(79, 140, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(79, 140, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            z-index: 0;
+            pointer-events: none;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .bg-orb-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(79, 140, 255, 0.15), transparent);
+            top: -100px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+
+        .bg-orb-2 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.1), transparent);
+            bottom: 10%;
+            left: -100px;
+            animation-delay: -7s;
+        }
+
+        .bg-orb-3 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(0, 230, 118, 0.08), transparent);
+            top: 50%;
+            right: 20%;
+            animation-delay: -14s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -40px) scale(1.05); }
+            50% { transform: translate(-20px, 20px) scale(0.95); }
+            75% { transform: translate(40px, 30px) scale(1.02); }
+        }
+
+        /* ===== LAYOUT ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        section {
+            padding: 100px 0;
+        }
+
+        /* ===== NAVIGATION ===== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .navbar.scrolled {
+            background: rgba(10, 10, 15, 0.95);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .navbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .nav-brand-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient-hero);
+            border-radius: var(--radius-xs);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-xs);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+            background: rgba(79, 140, 255, 0.1);
+        }
+
+        .nav-cta {
+            background: var(--accent-blue) !important;
+            color: white !important;
+            padding: 8px 20px !important;
+            font-weight: 600 !important;
+        }
+
+        .nav-cta:hover {
+            background: #3a7aff !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(79, 140, 255, 0.4);
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 70px;
+            position: relative;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            background: rgba(79, 140, 255, 0.1);
+            border: 1px solid rgba(79, 140, 255, 0.2);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--accent-blue);
+            margin-bottom: 32px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .hero-badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.8rem, 6vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+
+        .hero h1 .gradient-text {
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 650px;
+            margin: 0 auto 40px;
+            line-height: 1.8;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 32px;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+            box-shadow: 0 4px 20px rgba(79, 140, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #3a7aff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(79, 140, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 80px;
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== SECTION HEADERS ===== */
+        .section-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .section-label {
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-blue);
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+
+        .section-desc {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ===== FEATURES GRID ===== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 36px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-hero);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            border-color: rgba(79, 140, 255, 0.3);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon.blue { background: rgba(79, 140, 255, 0.12); }
+        .feature-icon.cyan { background: rgba(0, 212, 255, 0.12); }
+        .feature-icon.green { background: rgba(0, 230, 118, 0.12); }
+        .feature-icon.orange { background: rgba(255, 145, 0, 0.12); }
+        .feature-icon.purple { background: rgba(179, 136, 255, 0.12); }
+        .feature-icon.red { background: rgba(255, 82, 82, 0.12); }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* ===== ARCHITECTURE SECTION ===== */
+        .architecture-visual {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 48px;
+            margin-bottom: 48px;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .flow-node {
+            padding: 16px 28px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            min-width: 140px;
+            transition: var(--transition);
+        }
+
+        .flow-node:hover {
+            transform: scale(1.05);
+        }
+
+        .flow-node.input {
+            background: rgba(79, 140, 255, 0.15);
+            border: 1px solid rgba(79, 140, 255, 0.3);
+            color: var(--accent-blue);
+        }
+
+        .flow-node.process {
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: var(--accent-cyan);
+        }
+
+        .flow-node.output {
+            background: rgba(0, 230, 118, 0.15);
+            border: 1px solid rgba(0, 230, 118, 0.3);
+            color: var(--accent-green);
+        }
+
+        .flow-arrow {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        /* ===== ACI TABLES ===== */
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .aci-table-card {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .aci-table-card:hover {
+            border-color: rgba(79, 140, 255, 0.3);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .aci-table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .aci-table-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .aci-table-header p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .aci-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .aci-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .aci-table td {
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+        }
+
+        .aci-table tr:hover td {
+            background: rgba(79, 140, 255, 0.05);
+        }
+
+        /* ===== RESULTS SECTION ===== */
+        .results-tabs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 24px;
+            border-radius: 100px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        .tab-btn.active.green { background: var(--accent-green); border-color: var(--accent-green); color: #0a0a0f; }
+        .tab-btn.active.yellow { background: var(--accent-yellow); border-color: var(--accent-yellow); color: #0a0a0f; }
+        .tab-btn.active.red { background: var(--accent-red); border-color: var(--accent-red); }
+
+        .result-panel {
+            display: none;
+        }
+
+        .result-panel.active {
+            display: block;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .result-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 28px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .result-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(79, 140, 255, 0.3);
+        }
+
+        .result-card-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .result-card-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .result-card-value {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .result-card-unit {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .result-card-value.blue { color: var(--accent-blue); }
+        .result-card-value.cyan { color: var(--accent-cyan); }
+        .result-card-value.orange { color: var(--accent-orange); }
+        .result-card-value.green { color: var(--accent-green); }
+
+        /* ===== GETTING STARTED ===== */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .step-card {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 36px;
+            text-align: center;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .step-card:hover {
+            border-color: rgba(79, 140, 255, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(79, 140, 255, 0.15);
+            border: 2px solid var(--accent-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--accent-blue);
+        }
+
+        .step-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .step-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 32px;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .code-block .comment { color: var(--text-muted); }
+        .code-block .command { color: var(--accent-green); }
+        .code-block .string { color: var(--accent-orange); }
+        .code-block .keyword { color: var(--accent-purple); }
+
+        /* ===== BLOCKS TABLE ===== */
+        .blocks-table-wrapper {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .blocks-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .blocks-table th {
+            padding: 16px 24px;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .blocks-table td {
+            padding: 14px 24px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .blocks-table tr:hover td {
+            background: rgba(79, 140, 255, 0.05);
+        }
+
+        .block-type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .block-type-badge.sources { background: rgba(79, 140, 255, 0.12); color: var(--accent-blue); }
+        .block-type-badge.lookup { background: rgba(0, 212, 255, 0.12); color: var(--accent-cyan); }
+        .block-type-badge.math { background: rgba(255, 145, 0, 0.12); color: var(--accent-orange); }
+        .block-type-badge.ports { background: rgba(179, 136, 255, 0.12); color: var(--accent-purple); }
+        .block-type-badge.sinks { background: rgba(0, 230, 118, 0.12); color: var(--accent-green); }
+
+        /* ===== CONTRIBUTE SECTION ===== */
+        .contribute-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .contribute-card {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 28px;
+            transition: var(--transition);
+        }
+
+        .contribute-card:hover {
+            border-color: rgba(79, 140, 255, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .contribute-card h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contribute-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* ===== FORMULA SECTION ===== */
+        .formula-box {
+            background: var(--gradient-card);
+            border: 1px solid rgba(79, 140, 255, 0.2);
+            border-radius: var(--radius);
+            padding: 48px;
+            text-align: center;
+            margin: 40px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .formula-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-hero);
+        }
+
+        .formula-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-blue);
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .formula-text {
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .formula-desc {
+            margin-top: 16px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            border-top: 1px solid var(--border-color);
+            padding: 60px 0 40px;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-blue);
+        }
+
+        .footer-copy {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer-heart {
+            color: var(--accent-red);
+        }
+
+        /* ===== CTA SECTION ===== */
+        .cta-section {
+            text-align: center;
+            padding: 80px 0;
+        }
+
+        .cta-box {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 64px 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-hero);
+        }
+
+        .cta-box h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .cta-box p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 32px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: rgba(10, 10, 15, 0.98);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                padding: 20px;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+
+            .hero-stats {
+                gap: 30px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-diagram {
+                flex-direction: column;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+
+            .tables-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .blocks-table-wrapper {
+                overflow-x: auto;
+            }
+
+            .formula-text {
+                font-size: 1.5rem;
+            }
+
+            section {
+                padding: 60px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .result-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* ===== COMMON INPUTS TABLE ===== */
+        .common-inputs {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        .common-inputs-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .common-inputs-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .common-inputs table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .common-inputs th {
+            padding: 12px 28px;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .common-inputs td {
+            padding: 12px 28px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .common-inputs td:last-child {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-grid"></div>
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="#" class="nav-brand">
+                <div class="nav-brand-icon">🏗️</div>
+                <span>MixDesign</span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#tables">ACI Tables</a></li>
+                <li><a href="#results">Results</a></li>
+                <li><a href="#start">Get Started</a></li>
+                <li><a href="https://github.com/Ahmad-Akram7/concrete-mix-design-simulink" class="nav-cta" target="_blank">⭐ GitHub</a></li>
+            </ul>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle navigation">☰</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    ACI 211.1 Compliant
+                </div>
+                <h1>
+                    Concrete Mix Design<br>
+                    <span class="gradient-text">Automated in Simulink</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Stop doing mix design by hand. This Simulink model automates the full ACI 211.1 workflow — 
+                    change one input and every downstream value updates instantly.
+                </p>
+                <div class="hero-actions">
+                    <a href="https://github.com/Ahmad-Akram7/concrete-mix-design-simulink" class="btn btn-primary" target="_blank">
+                        🚀 View on GitHub
+                    </a>
+                    <a href="#start" class="btn btn-secondary">
+                        📖 Get Started
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">3</div>
+                        <div class="hero-stat-label">Concrete Grades</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">ACI</div>
+                        <div class="hero-stat-label">Standard</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">100%</div>
+                        <div class="hero-stat-label">Automated</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Features</div>
+                <h2 class="section-title">Why Use This Model?</h2>
+                <p class="section-desc">Everything you need for fast, accurate, and reproducible concrete mix designs.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon blue">⚡</div>
+                    <h3>Instant Recalculation</h3>
+                    <p>Tweak any input parameter and watch all outputs update in real time. No manual re-computation needed.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon cyan">📐</div>
+                    <h3>Full ACI 211.1 Compliance</h3>
+                    <p>Water content, w/c ratio, and aggregate volumes are sourced directly from ACI standard tables.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon green">🧱</div>
+                    <h3>3 Validated Grades</h3>
+                    <p>M25, M35, and M45 scenarios included and verified out of the box.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon orange">🔬</div>
+                    <h3>Absolute Volume Method</h3>
+                    <p>Fine aggregate calculation uses the absolute volume method, encapsulated in a dedicated subsystem.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon purple">🧩</div>
+                    <h3>Modular Architecture</h3>
+                    <p>Clean, readable block layout organized left-to-right for easy understanding and modification.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon red">🎓</div>
+                    <h3>Perfect for Learning</h3>
+                    <p>Ideal for coursework, labs, and understanding how concrete mix design actually works.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Architecture</div>
+                <h2 class="section-title">Model Flow</h2>
+                <p class="section-desc">The model follows the ACI 211.1 procedure as a sequential calculation chain.</p>
+            </div>
+            <div class="architecture-visual">
+                <div class="flow-diagram">
+                    <div class="flow-node input">📥 Inputs<br><small>Strength, Slump, Agg Size, FM</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node process">📊 ACI Lookup Tables<br><small>Water, w/c, CA Volume</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node process">🔢 Math Operations<br><small>Cement, CA Mass</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node process">📦 Subsystem<br><small>Absolute Volume → FA</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node output">📤 Outputs<br><small>Water, Cement, CA, FA</small></div>
+                </div>
+            </div>
+
+            <!-- Formula Box -->
+            <div class="formula-box">
+                <div class="formula-label">Governing Equation — Cement Content</div>
+                <div class="formula-text">C = W ÷ (w/c)</div>
+                <p class="formula-desc">Where W = water content (kg/m³) and w/c = water-cement ratio from ACI Table 2</p>
+            </div>
+
+            <!-- Simulink Blocks Table -->
+            <div class="blocks-table-wrapper">
+                <table class="blocks-table">
+                    <thead>
+                        <tr>
+                            <th>Block Type</th>
+                            <th>Library</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="block-type-badge sources">Constant</span></td>
+                            <td>Sources</td>
+                            <td>All design input parameters</td>
+                        </tr>
+                        <tr>
+                            <td><span class="block-type-badge lookup">2-D Lookup Table</span></td>
+                            <td>Lookup Tables</td>
+                            <td>ACI Tables 1 & 3</td>
+                        </tr>
+                        <tr>
+                            <td><span class="block-type-badge lookup">1-D Lookup Table</span></td>
+                            <td>Lookup Tables</td>
+                            <td>ACI Table 2 (w/c ratio)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="block-type-badge math">Divide / Product</span></td>
+                            <td>Math Operations</td>
+                            <td>Cement & mass calculations</td>
+                        </tr>
+                        <tr>
+                            <td><span class="block-type-badge math">Sum</span></td>
+                            <td>Math Operations</td>
+                            <td>Absolute volume summation</td>
+                        </tr>
+                        <tr>
+                            <td><span class="block-type-badge ports">Subsystem</span></td>
+                            <td>Ports & Subsystems</td>
+                            <td>Encapsulates fine aggregate logic</td>
+                        </tr>
+                        <tr>
+                            <td><span class="block-type-badge sinks">Display</span></td>
+                            <td>Sinks</td>
+                            <td>Output: Water, Cement, CA, FA</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ACI Tables Section -->
+    <section id="tables">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Reference Data</div>
+                <h2 class="section-title">ACI 211.1 Tables</h2>
+                <p class="section-desc">The lookup tables baked directly into the Simulink model.</p>
+            </div>
+            <div class="tables-grid">
+                <!-- Table 1 -->
+                <div class="aci-table-card">
+                    <div class="aci-table-header">
+                        <h3>📊 Table 1 — Water Content</h3>
+                        <p>Estimated mixing water (kg/m³) for non-air-entrained concrete</p>
+                    </div>
+                    <table class="aci-table">
+                        <thead>
+                            <tr>
+                                <th>Slump (mm)</th>
+                                <th>10 mm</th>
+                                <th>20 mm</th>
+                                <th>40 mm</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>25 – 50</td>
+                                <td>215</td>
+                                <td>190</td>
+                                <td>175</td>
+                            </tr>
+                            <tr>
+                                <td>75 – 100</td>
+                                <td>225</td>
+                                <td>205</td>
+                                <td>185</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table 2 -->
+                <div class="aci-table-card">
+                    <div class="aci-table-header">
+                        <h3>📊 Table 2 — w/c Ratio</h3>
+                        <p>Water-cement ratio vs. 28-day compressive strength</p>
+                    </div>
+                    <table class="aci-table">
+                        <thead>
+                            <tr>
+                                <th>f'c (MPa)</th>
+                                <th>w/c Ratio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>45</td>
+                                <td>0.42</td>
+                            </tr>
+                            <tr>
+                                <td>35</td>
+                                <td>0.52</td>
+                            </tr>
+                            <tr>
+                                <td>25</td>
+                                <td>0.65</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table 3 -->
+                <div class="aci-table-card" style="grid-column: 1 / -1;">
+                    <div class="aci-table-header">
+                        <h3>📊 Table 3 — Coarse Aggregate Volume</h3>
+                        <p>Volume of oven-dry rodded coarse aggregate per unit volume of concrete</p>
+                    </div>
+                    <table class="aci-table">
+                        <thead>
+                            <tr>
+                                <th>Max. Agg. Size</th>
+                                <th>FM 2.40</th>
+                                <th>FM 2.60</th>
+                                <th>FM 2.80</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>10 mm</td>
+                                <td>0.50</td>
+                                <td>0.48</td>
+                                <td>0.46</td>
+                            </tr>
+                            <tr>
+                                <td>20 mm</td>
+                                <td>0.66</td>
+                                <td>0.64</td>
+                                <td>0.62</td>
+                            </tr>
+                            <tr>
+                                <td>40 mm</td>
+                                <td>0.75</td>
+                                <td>0.73</td>
+                                <td>0.71</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Verified Output</div>
+                <h2 class="section-title">Results & Verification</h2>
+                <p class="section-desc">Three validated scenarios with common inputs shown below.</p>
+            </div>
+
+            <!-- Common Inputs -->
+            <div class="common-inputs">
+                <div class="common-inputs-header">
+                    <h3>📋 Common Input Parameters (All Scenarios)</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Max. Aggregate Size</td><td>20 mm</td></tr>
+                        <tr><td>Fineness Modulus</td><td>2.60</td></tr>
+                        <tr><td>SG — Cement</td><td>3.15</td></tr>
+                        <tr><td>SG — Fine Aggregate</td><td>2.65</td></tr>
+                        <tr><td>SG — Coarse Aggregate</td><td>2.70</td></tr>
+                        <tr><td>Unit Weight (CA)</td><td>1600 kg/m³</td></tr>
+                        <tr><td>Entrapped Air</td><td>2%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tabs -->
+            <div class="results-tabs">
+                <button class="tab-btn active green" onclick="showTab('m25')">🟢 M25 Grade</button>
+                <button class="tab-btn yellow" onclick="showTab('m35')">🟡 M35 Grade</button>
+                <button class="tab-btn red" onclick="showTab('m45')">🔴 M45 Grade</button>
+            </div>
+
+            <!-- M25 Panel -->
+            <div class="result-panel active" id="m25">
+                <p style="text-align:center; color: var(--text-secondary); margin-bottom: 24px;">
+                    <strong>Inputs:</strong> Target Strength = 25 MPa · Slump = 100 mm
+                </p>
+                <div class="result-cards">
+                    <div class="result-card">
+                        <div class="result-card-icon">💧</div>
+                        <div class="result-card-label">Water</div>
+                        <div class="result-card-value blue">205</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-icon">🏭</div>
+                        <div class="result-card-label">Cement</div>
+                        <div class="result-card-value cyan">315.4</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-icon">🪨</div>
+                        <div class="result-card-label">Coarse Aggregate</div>
+                        <div class="result-card-value orange">1024</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-icon">🏖️</div>
+                        <div class="result-card-label">Fine Aggregate</div>
+                        <div class="result-card-value green">778.1</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- M35 Panel -->
+            <div class="result-panel" id="m35">
+                <p style="text-align:center; color: var(--text-secondary); margin-bottom: 24px;">
+                    <strong>Inputs:</strong> Target Strength = 35 MPa · Slump = 100 mm
+                </p>
+                <div class="result-cards">
+                    <div class="result-card">
+                        <div class="result-card-icon">💧</div>
+                        <div class="result-card-label">Water</div>
+                        <div class="result-card-value blue">205</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-icon">🏭</div>
+                        <div class="result-card-label">Cement</div>
+                        <div class="result-card-value cyan">394.2</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-icon">🪨</div>
+                        <div class="result-card-label">Coarse Aggregate</div>
+                        <div class="result-card-value orange">1024</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-icon">🏖️</div>
+                        <div class="result-card-label">Fine Aggregate</div>
+                        <div class="result-card-value green">690.6</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- M45 Panel -->
+            <div class="result-panel" id="m45">
+                <p style="text-align:center; color: var(--text-secondary); margin-bottom: 24px;">
+                    <strong>Inputs:</strong> Target Strength = 45 MPa · Slump = 50 mm
+                </p>
+                <div class="result-cards">
+                    <div class="result-card">
+                        <div class="result-card-icon">💧</div>
+                        <div class="result-card-label">Water</div>
+                        <div class="result-card-value blue">190</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-icon">🏭</div>
+                        <div class="result-card-label">Cement</div>
+                        <div class="result-card-value cyan">452.4</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-icon">🪨</div>
+                        <div class="result-card-label">Coarse Aggregate</div>
+                        <div class="result-card-value orange">1024</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-icon">🏖️</div>
+                        <div class="result-card-label">Fine Aggregate</div>
+                        <div class="result-card-value green">658.5</div>
+                        <div class="result-card-unit">kg/m³</div>
+                    </div>
+                </div>
+            </div>
+
+            <p style="text-align:center; margin-top: 32px; color: var(--text-secondary); font-size: 0.95rem;">
+                ✅ <strong>Validation:</strong> As target strength increases, cement content rises and fine aggregate decreases — exactly as ACI 211.1 predicts.
+            </p>
+        </div>
+    </section>
+
+    <!-- Getting Started Section -->
+    <section id="start">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Quick Start</div>
+                <h2 class="section-title">Get Started in Minutes</h2>
+                <p class="section-desc">Clone, open, and run — it's that simple.</p>
+            </div>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Prerequisites</h3>
+                    <p>MATLAB R2020b or later with the Simulink base package installed.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Clone the Repo</h3>
+                    <p>Download or clone the repository to your local machine.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Open & Run</h3>
+                    <p>Open the .slx file in Simulink, set your inputs, and press Run.</p>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <pre><span class="comment"># Clone the repository</span>
+<span class="command">git clone</span> <span class="string">https://github.com/Ahmad-Akram7/concrete-mix-design-simulink.git</span>
+
+<span class="comment"># Open MATLAB and navigate to the project folder</span>
+<span class="command">cd</span> concrete-mix-design-simulink
+
+<span class="comment">% Open the model</span>
+<span class="keyword">open</span>(<span class="string">'Concrete_Mix_Design_Simulink_v9.slx'</span>)
+
+<span class="comment">% Set your inputs in the Constant blocks:</span>
+<span class="comment">%   - Target_Strength_MPa  (e.g., 25, 35, 45)</span>
+<span class="comment">%   - Slump_mm             (e.g., 50 or 100)</span>
+<span class="comment">%   - Max_Agg_Size_mm      (10, 20, or 40)</span>
+<span class="comment">%   - Fineness_Modulus      (2.40, 2.60, or 2.80)</span>
+
+<span class="comment">% Hit Run (Ctrl+T) — results appear in the Display blocks instantly</span></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contributing Section -->
+    <section id="contribute">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Open Source</div>
+                <h2 class="section-title">Contribute</h2>
+                <p class="section-desc">Ideas to extend this project and make it even better.</p>
+            </div>
+            <div class="contribute-grid">
+                <div class="contribute-card">
+                    <h4>🔧 Extend Aggregate Sizes</h4>
+                    <p>Add support for 12.5 mm or 63 mm aggregate sizes.</p>
+                </div>
+                <div class="contribute-card">
+                    <h4>💨 Air-Entrained Concrete</h4>
+                    <p>Implement the ACI 211.1 air-entrained water tables.</p>
+                </div>
+                <div class="contribute-card">
+                    <h4>📈 Dashboard Scope</h4>
+                    <p>Real-time plotting of proportions as inputs change.</p>
+                </div>
+                <div class="contribute-card">
+                    <h4>🌍 Metric/Imperial Toggle</h4>
+                    <p>Auto-convert between SI and US customary units.</p>
+                </div>
+                <div class="contribute-card">
+                    <h4>🧪 Additional Standards</h4>
+                    <p>IS 10262, BS 8500, or EN 206 mix design logic.</p>
+                </div>
+                <div class="contribute-card">
+                    <h4>📄 Report Export</h4>
+                    <p>Generate a PDF mix design summary from the Simulink outputs.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-box">
+                <h2>Ready to Automate Your Mix Design?</h2>
+                <p>Clone the repo, open it in Simulink, and get accurate concrete proportions in seconds.</p>
+                <div class="cta-actions">
+                    <a href="https://github.com/Ahmad-Akram7/concrete-mix-design-simulink" class="btn btn-primary" target="_blank">
+                        🚀 View Repository
+                    </a>
+                    <a href="https://github.com/Ahmad-Akram7/concrete-mix-design-simulink/archive/refs/heads/main.zip" class="btn btn-secondary">
+                        📥 Download ZIP
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://github.com/Ahmad-Akram7/concrete-mix-design-simulink" target="_blank">GitHub</a>
+                <a href="https://github.com/Ahmad-Akram7/concrete-mix-design-simulink/issues" target="_blank">Issues</a>
+                <a href="https://github.com/Ahmad-Akram7/concrete-mix-design-simulink/pulls" target="_blank">Pull Requests</a>
+                <a href="https://github.com/Ahmad-Akram7/concrete-mix-design-simulink/wiki" target="_blank">Wiki</a>
+            </div>
+            <p class="footer-copy">
+                Built with <span class="footer-heart">❤️</span> for the civil engineering community
+                <br>
+                © 2025 Ahmad Akram · MIT License
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Mobile toggle
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navLinks = document.getElementById('navLinks');
+        mobileToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+            mobileToggle.textContent = navLinks.classList.contains('open') ? '✕' : '☰';
+        });
+
+        // Close mobile menu on link click
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('open');
+                mobileToggle.textContent = '☰';
+            });
+        });
+
+        // Tab switching
+        function showTab(tabId) {
+            // Hide all panels
+            document.querySelectorAll('.result-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            // Deactivate all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected panel
+            document.getElementById(tabId).classList.add('active');
+
+            // Activate clicked button
+            const tabMap = { m25: 0, m35: 1, m45: 2 };
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons[tabMap[tabId]].classList.add('active');
+        }
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .aci-table-card, .result-card, .step-card, .contribute-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
